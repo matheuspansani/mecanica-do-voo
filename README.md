@@ -147,29 +147,7 @@ Gera:
 
 ---
 
-## Análises Realizadas
-
-### Modos Dinâmicos Identificados
-
-| Modo | Tipo | ωn (rad/s) | ζ | T (s) | Estável |
-|---|---|---|---|---|---|
-| Período Curto | Longitudinal oscilatório | ~5,0 | ~0,20 | ~1,3 | ✅ |
-| Fugóide | Longitudinal oscilatório | ~0,09 | ~0,09 | ~71 | ✅ |
-| Dutch Roll | Lateral oscilatório | — | — | — | ✅ |
-| Roll Subsidence | Lateral aperiódico | — | — | — | ✅ |
-| Espiral | Lateral aperiódico | — | — | — | — |
-
-### Qualidades de Voo (MIL-F-8785C)
-
-- **CAP** (Control Anticipation Parameter) avaliado para Classe IV, Categoria A
-- **Amortecimento do período curto** e **fugóide**
-- **Dutch Roll**: ζ·ωn mínimo
-- **Roll subsidence**: constante de tempo τ
-- **Espiral**: tempo para dobrar amplitude T₂
-
----
-
-## Autores
+## Autor
 
 - **Matheus Pansani Rodrigues**
 
