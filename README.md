@@ -172,7 +172,6 @@ Gera:
 ## Autores
 
 - **Matheus Pansani Rodrigues**
-- **Victor Marques Fernandes Mozer**
 
 ---
 
