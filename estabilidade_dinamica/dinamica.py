@@ -33,20 +33,19 @@ q_bar = 0.5 * rho * U0**2
 S_ref = 32.420; c_ref = 2.76; b_ref = 11.72
 m_mid = 0.80 * 30442; W0 = m_mid * g
 
-# *** MOMENTOS DE INÉRCIA — SUBSTITUIR COM VALORES DO SOLIDWORKS ***
 Ixx = 40000; Iyy = 230000; Izz = 260000; Ixz = 4000
 
 # ======================== DERIVADAS AVL (alfa=4 deg, cruzeiro) ==============
 CL0 = 0.27256; CD0_val = 0.02676; Cm0 = -0.00060
 
 CL_alpha = 3.876101; CD_alpha = 2*0.00565*CL0*CL_alpha; Cm_alpha = -0.007875
-CL_q = 5.985502; Cm_q = -6.151259         # AVL st_alpha_+04.00
-CL_alpha_dot = 1.0; Cm_alpha_dot = -1.0   # estimativas (canard — VLM não fornece)
+CL_q = 5.985502; Cm_q = -6.151259
+CL_alpha_dot = 1.0; Cm_alpha_dot = -1.0
 CD_u = 0.0; CL_u = 0.0; Cm_u = 0.0
 
-CY_beta = -0.317028; Cl_beta = -0.074704; Cn_beta = 0.056287   # AVL
-CY_p = 0.022756;  Cl_p = -0.312634; Cn_p = -0.014293           # AVL
-CY_r = 0.156048;  Cl_r = 0.078801;  Cn_r = -0.032952           # AVL
+CY_beta = -0.317028; Cl_beta = -0.074704; Cn_beta = 0.056287
+CY_p = 0.022756;  Cl_p = -0.312634; Cn_p = -0.014293
+CY_r = 0.156048;  Cl_r = 0.078801;  Cn_r = -0.032952
 
 # ======================== DERIVADAS DIMENSIONAIS ===========================
 print("=" * 70)
