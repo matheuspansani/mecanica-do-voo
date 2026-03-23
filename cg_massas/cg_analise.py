@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Distribuição de Massas e Passeio de CG
+=============================================================================
+ ITENS 5.5 e 5.6 — Distribuição de Massas + Passeio de CG
+=============================================================================
+ 5.5: Plot das massas distribuídas na aeronave com CG destacado
+ 5.6: Gráfico de passeio de CG para diferentes configurações de carga
+
+ >>> TODAS AS POSIÇÕES E MASSAS SÃO VARIÁVEIS NO TOPO DO SCRIPT <<<
+ >>> AJUSTE CONFORME DADOS DO CAD/SOLIDWORKS                     <<<
+=============================================================================
 """
 
 import numpy as np
@@ -18,75 +26,87 @@ plt.rcParams.update({
 # VARIÁVEIS DE ENTRADA — POSIÇÕES (X em metros, medido do nariz)
 #                        MASSAS (em kg)
 # ==========================================================================
+# Referência: X = 0 no nariz da aeronave
+# Comprimento total: 15.00 m
+# Xref do AVL = 9.88 m (centro de gravidade nominal)
+
+# --------------------------------------------------------------------------
+#  COMPONENTE              |  X_cg (m)  |  Massa (kg)  |  Y_cg (m)
+# --------------------------------------------------------------------------
+# Cada componente: (nome, x_position, mass, y_position, cor)
 
 COMPONENTS = {
+    # === ESTRUTURA ===
+    # Referência: Wempty = 13.663 kg (relatório Tabela 6)
     "Fuselagem (estrutura)": {
-        "x": 8.00,
+        "x": 8.00,         # centro geométrico da fuselagem (15m/2 + offset traseiro)
         "y": 0.00,
-        "mass": 3600,
+        "mass": 3600,       # ~26% do peso vazio — reforço naval, hook, catapulta
         "color": "#8ecae6",
         "marker": "s",
     },
     "Asa (estrutura)": {
-        "x": 10.30,
+        "x": 10.30,        # MAC da asa (~Xref)
         "y": 0.00,
-        "mass": 2800,
+        "mass": 2800,       # asa delta compósito + wing-fold
         "color": "#219ebc",
         "marker": "^",
     },
     "Canard (estrutura)": {
-        "x": 5.20,
+        "x": 5.20,         # centro do canard (entre 4.31 e 6.14 m)
         "y": 0.20,
         "mass": 420,
         "color": "#023047",
         "marker": "v",
     },
     "Empenagem vertical": {
-        "x": 11.40,
+        "x": 11.40,        # centro da VT (entre 10.39 e 12.49 m)
         "y": 2.10,
         "mass": 350,
         "color": "#126782",
         "marker": "D",
     },
 
+    # === PROPULSÃO ===
     "Motor F135": {
-        "x": 12.50,
+        "x": 12.50,        # motor no terço traseiro
         "y": 0.00,
-        "mass": 1701,
+        "mass": 1701,       # peso seco F135-PW-100
         "color": "#e63946",
         "marker": "o",
     },
     "Bocal + afterburner": {
-        "x": 14.00,
+        "x": 14.00,        # parte mais traseira
         "y": 0.00,
         "mass": 350,
         "color": "#d62828",
         "marker": "h",
     },
     "Entrada de ar + dutos": {
-        "x": 7.00,
+        "x": 7.00,         # inlet ventral, região do canard/asa
         "y": -0.40,
         "mass": 450,
         "color": "#c1121f",
         "marker": "h",
     },
 
+    # === SISTEMAS ===
     "Aviônicos + Radar AESA": {
-        "x": 1.80,
+        "x": 1.80,         # nariz (radome)
         "y": 0.00,
         "mass": 650,
         "color": "#f4a261",
         "marker": "p",
     },
     "Cockpit + Piloto + Assento": {
-        "x": 3.50,
+        "x": 3.50,         # cockpit
         "y": 0.50,
-        "mass": 300,
+        "mass": 300,        # piloto ~100 + assento ejetável ~200
         "color": "#e9c46a",
         "marker": "*",
     },
     "Sistema hidráulico": {
-        "x": 9.50,
+        "x": 9.50,         # centro, perto do CG
         "y": -0.30,
         "mass": 300,
         "color": "#2a9d8f",
@@ -107,6 +127,7 @@ COMPONENTS = {
         "marker": "d",
     },
 
+    # === TREM DE POUSO ===
     "Trem dianteiro": {
         "x": 3.00,
         "y": -0.80,
@@ -115,17 +136,18 @@ COMPONENTS = {
         "marker": "v",
     },
     "Trem principal": {
-        "x": 10.20,
+        "x": 10.20,        # sob a asa, ligeiramente à frente do CG
         "y": -0.80,
-        "mass": 820,
+        "mass": 820,        # reforçado para pouso embarcado
         "color": "#9b2226",
         "marker": "v",
     },
 
+    # === OUTROS ===
     "Hook + reforço estrutural": {
-        "x": 13.80,
+        "x": 13.80,        # gancho de arresting na cauda
         "y": -0.50,
-        "mass": 350,
+        "mass": 350,        # reforçado para pouso embarcado
         "color": "#774936",
         "marker": "P",
     },
@@ -139,44 +161,49 @@ COMPONENTS = {
     "ECS + miscelânea": {
         "x": 8.50,
         "y": 0.00,
-        "mass": 583,
+        "mass": 583,        # Environmental Control System + ajuste
         "color": "#adb5bd",
         "marker": "o",
     },
 }
 
-# === COMBUSTÍVEL ===
+# === COMBUSTÍVEL (tanques distribuídos) ===
+# CORREÇÃO: tanques posicionados à frente do CG vazio (~9.00 m)
+# Quando combustível queima, peso da frente some → CG migra para TRÁS
+# Isso REDUZ a margem estática ao longo da missão → justifica FBW
 FUEL_TANKS = {
     "Tanque fuselagem (fwd)": {
-        "x": 8.00,
+        "x": 7.00,          # tanque forward, entre cockpit e canard
         "y": -0.10,
-        "mass_full": 4500,
+        "mass_full": 5500,   # tanque principal (maior)
         "color": "#ffbe0b",
-        "order": 3,
+        "order": 3,          # último a consumir
     },
-    "Tanque fuselagem (aft)": {
-        "x": 11.00,
+    "Tanque fuselagem (center)": {
+        "x": 9.00,          # tanque central, sob a asa
         "y": -0.10,
-        "mass_full": 5500,
+        "mass_full": 5000,
         "color": "#fb5607",
         "order": 2,
     },
     "Tanques de asa (par)": {
-        "x": 10.30,
+        "x": 10.30,         # nas asas
         "y": 0.00,
-        "mass_full": 4536,
+        "mass_full": 4036,   # ajustado para fechar total
         "color": "#ff006e",
-        "order": 1,
+        "order": 1,          # primeiro a consumir
     },
 }
 
 # === ARMAMENTO / PAYLOAD ===
+# Missão Air-to-Air
 PAYLOAD_AA = {
     "6× AIM-120C": {"x": 9.80, "y": -0.60, "mass": 1080, "color": "#7209b7"},
     "2× AIM-9X":   {"x": 11.00, "y": -0.40, "mass": 172,  "color": "#560bad"},
     "Aviônicos missão": {"x": 2.50, "y": 0.10, "mass": 1021, "color": "#480ca8"},
 }
 
+# Missão Strike
 PAYLOAD_STRIKE = {
     "4× MK-83 JDAM":  {"x": 9.80, "y": -0.70, "mass": 1816, "color": "#7209b7"},
     "2× AIM-9X":      {"x": 11.00, "y": -0.40, "mass": 172,  "color": "#560bad"},
@@ -379,7 +406,7 @@ configs = [
     ("Ferry (sem payload)", None, '#2a9d8f', '-.'),
 ]
 
-c_ref = 2.76
+c_ref = 2.76  # MAC
 
 for label, payload, color, ls in configs:
     xcg_arr = []
